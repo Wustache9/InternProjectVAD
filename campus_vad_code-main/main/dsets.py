@@ -14,7 +14,7 @@ import numpy as np
 import cv2
 import warnings
 
-cv2.use_backend('turbojpeg')
+# cv2.use_backend('turbojpeg')
 
 
 class DatasetInfoDict():
