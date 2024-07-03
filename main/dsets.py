@@ -163,7 +163,7 @@ class TrainSetTrackingObject(tc_Dataset):
             if self._frame_dir:
                 assert exists(p := join(self._frame_dir, vid_name)), f"{p}"
 
-                with cv2.VideoReader(join(self._video_dir, file_name)) as v:
+                with cv2.VideoCapture(join(self._video_dir, file_name)) as v:
                     n = v.frame_cnt
                 if not n == len(lp := listdir(p)):
                     print(f"WARNING: video \"{p}\": vid_len = {n}, num_frm = {len(lp)}. The difference of frame numbers is ignored. Note it might cause bugs.")
@@ -278,10 +278,10 @@ class TrainSetTrackingObject(tc_Dataset):
                 if _v := self._vid_cache.get(vid_name):
                     vid_cap = _v
                 else:
-                    vid_cap = cv2.VideoReader(vid_path, cache_capacity=self.__cache_max_frm)
+                    vid_cap = cv2.VideoCapture(vid_path, cache_capacity=self.__cache_max_frm)
                     self._vid_cache.put(vid_name, vid_cap)
             else:
-                vid_cap = cv2.VideoReader(vid_path, cache_capacity=self.__cache_max_frm)
+                vid_cap = cv2.VideoCapture(vid_path, cache_capacity=self.__cache_max_frm)
 
         # 根据某一帧，确定一个方形固定视野
         obj_bbox_list = np.asarray([[max(int(p), 0) for p in _trk_ary[1:5]] for _fi, _trk_ary in snippet_trk_ary_list], np.int64)
@@ -362,7 +362,7 @@ class TrainSetTrackingObject(tc_Dataset):
         return snippet, background, scene_label
 
 
-class SnippetVideoReader(cv2.VideoCapture):
+class SnippetVideoCapture(cv2.VideoCapture):
     def __init__(self, video_path: str, video_track: OrderedDict, snippet_len: int, snippet_itv: int, device='cpu', tsfm_img=None, tsfm_box=None, tsfm_bgd=None, frame_dir: str = '', frname_tmpl: str = ''):
         super().__init__(video_path, (snippet_len + 1) * snippet_itv)
         self._vid_name = basename(video_path).split('.')[0]
@@ -541,7 +541,7 @@ class TestSetTrackingObject(TrainSetTrackingObject):
 
     def __getitem__(self, vid_idx: int):
         vid_name = list(self.all_trk_dict.keys())[vid_idx]
-        vid_stream = SnippetVideoReader(join(self._video_dir, f"{vid_name}.{self.vid_suffix}"), self.all_trk_dict[vid_name],
+        vid_stream = SnippetVideoCapture(join(self._video_dir, f"{vid_name}.{self.vid_suffix}"), self.all_trk_dict[vid_name],
                                         self.snippet_len, self.snippet_itv, self.device, self._tsfm_img, self._tsfm_box, self._tsfm_bgd,
                                         self._frame_dir, self._frname_tmpl)
         return vid_stream
